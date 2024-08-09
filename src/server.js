@@ -40,6 +40,9 @@ app.get("*", (req, res) => {
 });
 
 import { connectDB } from "./db/index.js";
+import userRoutes from "./routes/user.routes.js";
+
+app.use("/api/v1/users", userRoutes);
 
 const startServer = async () => {
   try {

@@ -1,6 +1,5 @@
 import { Schema } from "mongoose";
 import { getCurrentUTCTime } from "../time/time.helper.js";
-
 export const contactNumberSchema = new Schema(
   {
     countryCode: {
@@ -44,6 +43,12 @@ export const commonStringConstraintsRequired = {
   default: "",
 };
 
+export const uniqueEmailConstraint = {
+  type: String,
+  required: true,
+  unique: true,
+};
+
 export const commonUniqueStringConstraintRequiresd = {
   type: String,
   required: true,
@@ -59,11 +64,4 @@ export const passwordRequiredConstraint = {
   type: String,
   required: true,
   minlength: 8,
-  validate: {
-    validator: function (v) {
-      return v.length >= 8;
-    },
-    message: (props) =>
-      `Password must be at least 8 characters long. Provided password is only ${props.value.length} characters long.`,
-  },
 };

@@ -1,6 +1,11 @@
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { User } from "../../models/user.model.js";
+import {
+  validateIITJEmail,
+  validatePassword,
+  validateRollNumber,
+} from "../../helpers/schema/validateiitjemail.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   try {
@@ -10,6 +15,61 @@ export const registerUser = asyncHandler(async (req, res) => {
         .status(400)
         .json(
           new ApiResponse(400, {}, "Please provide all the required fields")
+        );
+    }
+
+    if (!validateIITJEmail(email)) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            `${email} is not a valid IITJ email address!`
+          )
+        );
+    }
+
+    if (!validateRollNumber(rollnumber)) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            `Roll number must contain only uppercase letters and numbers.`
+          )
+        );
+    }
+
+    if (!validatePassword(password)) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            `Minimun password length should be greater than 7`
+          )
+        );
+    }
+
+    const existingUser = await User.findOne({ email: email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, {}, `This email is already used`));
+    }
+
+    const existingUserRollNumber = await User.findOne({
+      rollNumber: rollnumber,
+    });
+
+    if (existingUserRollNumber) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(400, {}, `This rollNumber is already registered`)
         );
     }
 

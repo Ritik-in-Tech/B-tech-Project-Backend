@@ -1,22 +1,14 @@
 import { Schema, model } from "mongoose";
 import { getCurrentIndianTime } from "../helpers/time/time.helper.js";
-import { validateIITJEmail } from "../helpers/schema/validateiitjemail.js";
 import {
   commonUniqueStringConstraintRequiresd,
   passwordRequiredConstraint,
+  uniqueEmailConstraint,
 } from "../helpers/schema/schema.helper.js";
 import { hashPassword } from "../helpers/schema/passwordhash.js";
 
 const userSchema = new Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    validate: {
-      validator: validateIITJEmail,
-      message: (props) => `${props.value} is not a valid IITJ email address!`,
-    },
-  },
+  email: uniqueEmailConstraint,
   rollNumber: commonUniqueStringConstraintRequiresd,
   password: passwordRequiredConstraint,
   date: {

@@ -41,8 +41,10 @@ const HTTP_PORT = process.env.HTTP_PORT || 80;
 
 import { connectDB } from "./db/index.js";
 import userRoutes from "./routes/user.routes.js";
+import messRoutes from "./routes/mess.routes.js";
 
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/mess", messRoutes);
 
 const startServer = async () => {
   try {

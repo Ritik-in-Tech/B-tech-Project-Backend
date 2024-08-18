@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
-import { commonStringConstraints } from "../helpers/schema/schema.helper";
-import { getCurrentIndianTime } from "../helpers/time/time.helper";
+import { commonStringConstraints } from "../helpers/schema/schema.helper.js";
+import { getCurrentIndianTime } from "../helpers/time/time.helper.js";
 
 const dataSchema = new Schema(
   {

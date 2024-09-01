@@ -6,7 +6,5 @@ export const addData = asyncHandler(async (req, res) => {
 
     if (!userId) {
     }
-
-    
   } catch (error) {}
 });

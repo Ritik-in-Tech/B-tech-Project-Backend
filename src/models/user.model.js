@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import { getCurrentIndianTime } from "../helpers/time/time.helper.js";
 import {
+  commonStringConstraints,
   commonUniqueStringConstraintRequiresd,
   passwordRequiredConstraint,
   uniqueEmailConstraint,
@@ -11,6 +12,8 @@ const userSchema = new Schema({
   email: uniqueEmailConstraint,
   rollNumber: commonUniqueStringConstraintRequiresd,
   password: passwordRequiredConstraint,
+  fingerprintKey: commonStringConstraints,
+  fingerprintImageUrl: commonStringConstraints,
   date: {
     type: Date,
     default: getCurrentIndianTime(),

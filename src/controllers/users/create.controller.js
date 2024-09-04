@@ -9,7 +9,8 @@ import {
 
 export const registerUser = asyncHandler(async (req, res) => {
   try {
-    let { email, rollnumber, password } = req.body;
+    let { email, rollnumber, password, fingerprintKey, fingerprintUrl } =
+      req.body;
     if (!email || !rollnumber || !password) {
       return res
         .status(400)
@@ -77,6 +78,8 @@ export const registerUser = asyncHandler(async (req, res) => {
       email: email,
       rollNumber: rollnumber,
       password: password,
+      fingerprintKey: fingerprintKey,
+      fingerprintImageUrl: fingerprintUrl,
     });
 
     await user.save();

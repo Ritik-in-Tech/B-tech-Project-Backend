@@ -9,7 +9,6 @@ import dotenv from "dotenv";
 import { Server } from "socket.io";
 
 dotenv.config();
-
 const app = express();
 
 if (process.env.NODE_ENV === "development") {

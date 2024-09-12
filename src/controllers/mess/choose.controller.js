@@ -1,3 +1,4 @@
+import { validMessNames } from "../../constant.js";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
@@ -41,7 +42,6 @@ export const chooseMess = asyncHandler(async (req, res) => {
         );
     }
 
-    const validMessNames = ["Old", "New"];
     if (!validMessNames.includes(mess)) {
       return res
         .status(400)

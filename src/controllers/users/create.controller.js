@@ -6,6 +6,8 @@ import {
   validatePassword,
   validateRollNumber,
 } from "../../helpers/schema/validateiitjemail.js";
+import { generateQRCode } from "../../helpers/qr/generate_qr.js";
+import { uploadQRToS3 } from "../../helpers/qr/upload_qr_aws.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   try {
@@ -83,6 +85,9 @@ export const registerUser = asyncHandler(async (req, res) => {
     });
 
     await user.save();
+
+    const qrcodeData = await generateQRCode(rollnumber);
+    const qrcodeUrl = await uploadQRToS3(qrcodeData, rollnumber);
 
     return res
       .status(201)

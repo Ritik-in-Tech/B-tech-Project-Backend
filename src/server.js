@@ -30,7 +30,7 @@ app.use(
   })
 );
 
-const HTTP_PORT = process.env.HTTP_PORT || 80;
+const HTTP_PORT = process.env.HTTP_PORT || 3000;
 
 // app.get("*", (req, res) => {
 //   res.json({

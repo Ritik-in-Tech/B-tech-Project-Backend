@@ -32,12 +32,6 @@ app.use(
 
 const HTTP_PORT = process.env.HTTP_PORT || 3000;
 
-// app.get("*", (req, res) => {
-//   res.json({
-//     message: "Wecome to BTP api's",
-//   });
-// });
-
 import { connectDB } from "./db/index.js";
 import userRoutes from "./routes/user.routes.js";
 import messRoutes from "./routes/mess.routes.js";

@@ -39,18 +39,15 @@ import messRoutes from "./routes/mess.routes.js";
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/mess", messRoutes);
 
+app.get("*", (req, res) => {
+  res.json({ msg: "Welcome to BTP Restful API'S" });
+});
+
 const startServer = async () => {
   try {
     await connectDB();
 
     const httpServer = http.createServer(app);
-
-    const ioHttp = new Server(httpServer, {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
-      },
-    });
 
     httpServer.listen(HTTP_PORT, () => {
       console.log(`HTTP Server running on http://localhost:${HTTP_PORT}`);

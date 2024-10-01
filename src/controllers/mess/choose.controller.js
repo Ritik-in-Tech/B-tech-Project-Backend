@@ -127,7 +127,7 @@ export const chooseMess = asyncHandler(async (req, res) => {
         new ApiResponse(
           200,
           { messData },
-          getStatusMessage(200) + ": Mess date added successfull!"
+          getStatusMessage(200) + ": Mess date added successfully!"
         )
       );
   } catch (error) {

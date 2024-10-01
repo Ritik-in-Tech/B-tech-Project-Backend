@@ -2,8 +2,11 @@ import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { User } from "../../models/user.model.js";
+import mongoose from "mongoose";
 
 export const verifyFinger = asyncHandler(async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { fingerprintKey } = req.body;
     if (!fingerprintKey) {
@@ -19,11 +22,12 @@ export const verifyFinger = asyncHandler(async (req, res) => {
         );
     }
 
-    const user = await User.findOne({ fingerprintKey: fingerprintKey }).select(
-      "_id"
-    );
+    const user = await User.findOne({ fingerprintKey: fingerprintKey })
+      .select("_id")
+      .session(session);
     // console.log(user);
     if (!user) {
+      await session.abortTransaction();
       return res
         .status(404)
         .json(
@@ -34,6 +38,9 @@ export const verifyFinger = asyncHandler(async (req, res) => {
           )
         );
     }
+
+    await session.commitTransaction();
+    session.endSession();
 
     const userId = user._id;
 
@@ -47,6 +54,8 @@ export const verifyFinger = asyncHandler(async (req, res) => {
         )
       );
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.log(err);
     return res
       .status(500)

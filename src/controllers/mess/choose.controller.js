@@ -4,8 +4,12 @@ import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { Mess } from "../../models/mess.model.js";
 import { User } from "../../models/user.model.js";
+import mongoose from "mongoose";
 
 export const chooseMess = asyncHandler(async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { userId } = req.params;
     if (!userId) {
@@ -20,8 +24,9 @@ export const chooseMess = asyncHandler(async (req, res) => {
         );
     }
 
-    const user = await User.findById(userId);
+    const user = await User.findById(userId).session(session);
     if (!user) {
+      await session.abortTransaction();
       return res
         .status(400)
         .json(
@@ -97,9 +102,10 @@ export const chooseMess = asyncHandler(async (req, res) => {
           endDate: { $gte: start, $lte: end },
         },
       ],
-    });
+    }).session(session);
 
     if (existAlready) {
+      await session.abortTransaction();
       return res
         .status(400)
         .json(
@@ -119,18 +125,23 @@ export const chooseMess = asyncHandler(async (req, res) => {
       endDate: end,
     });
 
-    await messData.save();
+    await messData.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res
       .status(200)
       .json(
         new ApiResponse(
           200,
-          { messData },
+          {},
           getStatusMessage(200) + ": Mess date added successfully!"
         )
       );
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.log(error);
     return res
       .status(500)

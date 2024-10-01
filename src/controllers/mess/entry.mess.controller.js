@@ -7,8 +7,12 @@ import {
   getCurrentIndianTime,
 } from "../../helpers/time/time.helper.js";
 import { Mess } from "../../models/mess.model.js";
+import mongoose from "mongoose";
 
 export const EntryDataMess = asyncHandler(async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { userId, mess } = req.body;
     if (!userId || !mess) {
@@ -40,9 +44,12 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
     const messDetail = await Mess.findOne({
       userId: userId,
       mess: mess,
-    }).select("startDate endDate data");
+    })
+      .select("startDate endDate data")
+      .session(session);
 
     if (!messDetail) {
+      await session.abortTransaction();
       return res
         .status(404)
         .json(
@@ -122,6 +129,7 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
     // console.log(hasTakenMeal);
 
     if (hasTakenMeal) {
+      await session.abortTransaction();
       return res
         .status(400)
         .json(
@@ -141,7 +149,10 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
     });
 
     messDetail.data = mealData;
-    await messDetail.save();
+    await messDetail.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res
       .status(200)
@@ -153,6 +164,8 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.log(error);
     return res
       .status(500)

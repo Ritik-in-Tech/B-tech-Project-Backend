@@ -8,14 +8,15 @@ import {
 } from "../../helpers/time/time.helper.js";
 import { Mess } from "../../models/mess.model.js";
 import mongoose from "mongoose";
+import { User } from "../../models/user.model.js";
 
 export const EntryDataMess = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { userId, mess } = req.body;
-    if (!userId || !mess) {
+    const { fingerprintKey, mess } = req.body;
+    if (!fingerprintKey || !mess) {
       return res
         .status(400)
         .json(
@@ -23,10 +24,28 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
             400,
             {},
             getStatusMessage(400) +
-              ": userId or mess is not provided in the body"
+              ": fingerprintKey or mess is not provided in the body"
           )
         );
     }
+
+    const user = await User.findOne({ fingerprintKey: fingerprintKey })
+      .select("_id")
+      .session(session);
+    if (!user) {
+      await session.abortTransaction();
+      return res
+        .status(404)
+        .json(
+          new ApiResponse(
+            404,
+            {},
+            getStatusMessage(404) + ": Fingerprint is not registered"
+          )
+        );
+    }
+
+    const userId = user._id;
 
     if (!validMessNames.includes(mess)) {
       return res

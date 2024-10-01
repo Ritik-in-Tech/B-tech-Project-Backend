@@ -41,6 +41,8 @@ import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
  * @param {string} rollnumber - The user's roll number.
  * @returns {Promise<string>} - The URL of the uploaded QR code.
  */
+
+
 const uploadQRToS3 = async (qrDataURL, rollnumber) => {
   // Extract Base64 data from Data URL
   const base64Data = qrDataURL.replace(/^data:image\/\w+;base64,/, '');
@@ -55,11 +57,11 @@ const uploadQRToS3 = async (qrDataURL, rollnumber) => {
   });
 
   const params = {
-    Bucket: process.env.AWS_BUCKET_NAME,
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
     Key: `qr_codes/${rollnumber}.png`, // Adjust the path as needed
     Body: buffer,
     ContentType: 'image/png',
-    ACL: 'public-read', // Make the file publicly readable
+    // ACL: 'public-read', // Make the file publicly readable
   };
 
   const command = new PutObjectCommand(params);
@@ -68,6 +70,10 @@ const uploadQRToS3 = async (qrDataURL, rollnumber) => {
     const imageUrl = `https://${params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
     return imageUrl;
   } catch (error) {
+    // console.error("Error uploading QR code to S3:", error);
+    // console.error("Error message:", error.message);
+    // console.error("Error code:", error.code);
+    // console.error("Error stack:", error.stack);
     throw new Error('Failed to upload QR code to AWS S3.');
   }
 };

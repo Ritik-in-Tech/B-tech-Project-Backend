@@ -8,6 +8,8 @@ import http from "http";
 import dotenv from "dotenv";
 import { Server } from "socket.io";
 
+dotenv.config(); // Load environment variables from .env file
+
 dotenv.config();
 const app = express();
 

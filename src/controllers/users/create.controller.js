@@ -6,14 +6,16 @@ import {
   validatePassword,
   validateRollNumber,
 } from "../../helpers/schema/validateiitjemail.js";
-import { generateQRCode } from "../../helpers/qr/generate_qr.js";
+import { generateQRDataURL } from "../../helpers/qr/generate_qr.js";
 import { uploadQRToS3 } from "../../helpers/qr/upload_qr_aws.js";
+import { sendEmail } from "../../helpers/email/send_email.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   try {
     let { email, rollnumber, password, fingerprintKey, fingerprintUrl } =
       req.body;
     if (!email || !rollnumber || !password) {
+      // console.log("Incomplete info");
       return res
         .status(400)
         .json(
@@ -22,6 +24,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     }
 
     if (!validateIITJEmail(email)) {
+      // console.log(`Invalid Email: ${email}`);
       return res
         .status(400)
         .json(
@@ -34,6 +37,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     }
 
     if (!validateRollNumber(rollnumber)) {
+      // console.log(`Invalid rollnumber: ${rollnumber}`);
       return res
         .status(400)
         .json(
@@ -86,12 +90,37 @@ export const registerUser = asyncHandler(async (req, res) => {
 
     await user.save();
 
-    const qrcodeData = await generateQRCode(rollnumber);
-    const qrcodeUrl = await uploadQRToS3(qrcodeData, rollnumber);
+    // const qrcodeData = await generateQRCode(rollnumber);
+    // const qrcodeUrl = await uploadQRToS3(qrcodeData, rollnumber);
+
+    // console.log("HElloooo");
+
+    const { qrCodeDataURL, rollHash } = await generateQRDataURL(rollnumber);
+
+    // Upload QR Code to AWS S3
+    const qrCodeURL = await uploadQRToS3(qrCodeDataURL, rollnumber);
+
+    // console.log("HElloooo11111");
+
+    // Prepare Email Options
+    const mailOptions = {
+      from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`, // Sender address
+      to: email, // Receiver's email
+      subject: 'Welcome! Here is your QR Code',
+      html: `
+        <p>Thank you for registering.</p>
+        <p>Your Roll Number: ${rollnumber}</p>
+        <p>Here is your secure QR Code:</p>
+        <img src="${qrCodeURL}" alt="QR Code" />
+        <p>Please keep this QR code safe. It contains your unique identifier.</p>
+      `,
+    };
+
+    await sendEmail(mailOptions);
 
     return res
       .status(201)
-      .json(new ApiResponse(201, {}, "User registered successfully"));
+      .json(new ApiResponse(201, {}, "User registered successfully! Please check your email for the QR code."));
   } catch (error) {
     console.log(error);
     return res

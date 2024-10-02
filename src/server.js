@@ -1,11 +1,11 @@
-import express from "express";
-import cookieParser from "cookie-parser";
-import session from "express-session";
-import cors from "cors";
 import bodyParser from "body-parser";
-import morgan from "morgan";
-import http from "http";
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import dotenv from "dotenv";
+import express from "express";
+import session from "express-session";
+import http from "http";
+import morgan from "morgan";
 import { Server } from "socket.io";
 
 dotenv.config();
@@ -40,8 +40,8 @@ const HTTP_PORT = process.env.HTTP_PORT || 80;
 // });
 
 import { connectDB } from "./db/index.js";
-import userRoutes from "./routes/user.routes.js";
 import messRoutes from "./routes/mess.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/mess", messRoutes);
@@ -56,6 +56,7 @@ const startServer = async () => {
       cors: {
         origin: "*",
         methods: ["GET", "POST"],
+        credentials: true
       },
     });
 

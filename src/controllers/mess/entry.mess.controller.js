@@ -15,8 +15,8 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
   session.startTransaction();
 
   try {
-    const { fingerprintKey, mess } = req.body;
-    if (!fingerprintKey || !mess) {
+    const { rollNumber, mess } = req.body;
+    if (!rollNumber || !mess) {
       return res
         .status(400)
         .json(
@@ -24,12 +24,12 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
             400,
             {},
             getStatusMessage(400) +
-              ": fingerprintKey or mess is not provided in the body"
+              ": rollNumber or mess is not provided in the body"
           )
         );
     }
 
-    const user = await User.findOne({ fingerprintKey: fingerprintKey })
+    const user = await User.findOne({ rollNumber: rollNumber })
       .select("_id")
       .session(session);
     if (!user) {

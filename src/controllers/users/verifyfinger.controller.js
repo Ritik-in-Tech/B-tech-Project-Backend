@@ -3,12 +3,13 @@ import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { User } from "../../models/user.model.js";
 import mongoose from "mongoose";
+import stringSimilarity from "string-similarity";
 
 export const verifyFinger = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
   try {
-    const { fingerprintKey } = req.body;
+    const { fingerprintKey, rollNumber } = req.body;
     if (!fingerprintKey) {
       return res
         .status(400)
@@ -22,10 +23,12 @@ export const verifyFinger = asyncHandler(async (req, res) => {
         );
     }
 
-    const user = await User.findOne({ fingerprintKey: fingerprintKey })
-      .select("_id")
-      .session(session);
-    // console.log(user);
+    const user = await User.findOne({ rollNumber: rollNumber });
+
+    // const user = await User.findOne({}) // Removed filtering by fingerprintKey for now
+    //   .select("_id fingerprintKey rollNumber")
+    //   .session(session);
+
     if (!user) {
       await session.abortTransaction();
       return res
@@ -34,7 +37,28 @@ export const verifyFinger = asyncHandler(async (req, res) => {
           new ApiResponse(
             404,
             {},
-            getStatusMessage(404) + ": Fingerprint is not registered"
+            getStatusMessage(404) + ": No users found with a fingerprintKey"
+          )
+        );
+    }
+
+    // Calculate similarity between provided fingerprintKey and the stored one
+    const similarity = stringSimilarity.compareTwoStrings(
+      fingerprintKey,
+      user.fingerprintKey
+    );
+
+    const similarityPercentage = similarity * 100; // Convert to percentage
+
+    if (similarityPercentage < 60) {
+      await session.abortTransaction();
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            { similarityPercentage },
+            getStatusMessage(400) + ": Fingerprint similarity is below 60%"
           )
         );
     }
@@ -49,8 +73,9 @@ export const verifyFinger = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          { userId },
-          getStatusMessage(200) + ": UserId fetched successfully!"
+          { userId, similarityPercentage },
+          getStatusMessage(200) +
+            `: UserId fetched successfully with ${similarityPercentage}% similarity!`
         )
       );
   } catch (err) {

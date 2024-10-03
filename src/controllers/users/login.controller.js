@@ -3,8 +3,12 @@ import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { comparePassword } from "../../helpers/schema/passwordhash.js";
 import { User } from "../../models/user.model.js";
+import mongoose from "mongoose";
 
 export const loginUser = asyncHandler(async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { rollnumber, password } = req.body;
     if (!rollnumber || !password) {
@@ -21,9 +25,10 @@ export const loginUser = asyncHandler(async (req, res) => {
 
     const exist = await User.findOne({
       rollNumber: rollnumber,
-    });
+    }).session(session);
 
     if (!exist) {
+      await session.abortTransaction();
       return res
         .status(401)
         .json(
@@ -31,7 +36,7 @@ export const loginUser = asyncHandler(async (req, res) => {
             401,
             {},
             getStatusMessage(401) +
-              ": User is not registred. Please sign up first"
+              ": User is not registred. Please register first"
           )
         );
     }
@@ -48,6 +53,9 @@ export const loginUser = asyncHandler(async (req, res) => {
         );
     }
 
+    await session.commitTransaction();
+    session.endSession();
+
     return res
       .status(200)
       .json(
@@ -58,6 +66,8 @@ export const loginUser = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
+    await session.abortTransaction();
+    session.endSession();
     console.log(error);
     return res
       .status(500)

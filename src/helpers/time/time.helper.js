@@ -9,3 +9,25 @@ export function getCurrentIndianTime() {
 export function getCurrentUTCTime() {
   return new Date();
 }
+
+export function getCurrentHoursMinutes(dateInput) {
+  let dateString;
+  if (dateInput instanceof Date) {
+    dateString = dateInput.toISOString();
+  } else if (typeof dateInput === "string") {
+    dateString = dateInput;
+  } else {
+    throw new TypeError("Input must be a string or Date object");
+  }
+  const cleanDateString = dateString.replace("Z", "");
+
+  const timePart = cleanDateString.split("T")[1];
+
+  const hours = timePart.slice(0, 2);
+  const minutes = timePart.slice(3, 5);
+
+  const currentHour = parseInt(hours, 10);
+  const currentMinute = parseInt(minutes, 10);
+
+  return { currentHour, currentMinute };
+}

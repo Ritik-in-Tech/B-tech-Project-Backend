@@ -8,8 +8,9 @@ import http from "http";
 import morgan from "morgan";
 import { Server } from "socket.io";
 
-dotenv.config();
+dotenv.config(); // Load environment variables from .env file
 
+dotenv.config();
 const app = express();
 
 if (process.env.NODE_ENV === "development") {
@@ -31,13 +32,7 @@ app.use(
   })
 );
 
-const HTTP_PORT = process.env.HTTP_PORT || 80;
-
-// app.get("*", (req, res) => {
-//   res.json({
-//     message: "Wecome to BTP api's",
-//   });
-// });
+const HTTP_PORT = process.env.HTTP_PORT || 3000;
 
 import { connectDB } from "./db/index.js";
 import messRoutes from "./routes/mess.routes.js";
@@ -46,19 +41,15 @@ import userRoutes from "./routes/user.routes.js";
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/mess", messRoutes);
 
+app.get("*", (req, res) => {
+  res.json({ msg: "Welcome to BTP Restful API'S" });
+});
+
 const startServer = async () => {
   try {
     await connectDB();
 
     const httpServer = http.createServer(app);
-
-    const ioHttp = new Server(httpServer, {
-      cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
-        credentials: true
-      },
-    });
 
     httpServer.listen(HTTP_PORT, () => {
       console.log(`HTTP Server running on http://localhost:${HTTP_PORT}`);

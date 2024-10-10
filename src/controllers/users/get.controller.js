@@ -5,7 +5,7 @@ import { getStatusMessage } from "../../helpers/response/statuscode.js";
 
 export const getAllUsers = asyncHandler(async (req, res) => {
   try {
-    const users = await User.find().select("email rollNumber -_id");
+    const users = await User.find().select("role email rollNumber -_id");
 
     if (users.length === 0) {
       return res

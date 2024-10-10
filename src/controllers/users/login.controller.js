@@ -10,8 +10,8 @@ export const loginUser = asyncHandler(async (req, res) => {
   session.startTransaction();
 
   try {
-    const { rollnumber, password } = req.body;
-    if (!rollnumber || !password) {
+    const { role, rollnumber, password, email } = req.body;
+    if (!role || !password) {
       return res
         .status(400)
         .json(
@@ -23,9 +23,40 @@ export const loginUser = asyncHandler(async (req, res) => {
         );
     }
 
-    const exist = await User.findOne({
-      rollNumber: rollnumber,
-    }).session(session);
+    let exist;
+    if (role === "admin" || role === "mess") {
+      if (!email) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              getStatusMessage(400) +
+                ": email is required for the admin and mess in the body to logIN"
+            )
+          );
+      }
+      exist = await User.findOne({
+        email: email,
+      }).session(session);
+    } else {
+      if (!rollnumber) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              getStatusMessage(400) +
+                ": rollNumber is required for the students in the body to logIN"
+            )
+          );
+      }
+      exist = await User.findOne({
+        rollNumber: rollnumber,
+      }).session(session);
+    }
 
     if (!exist) {
       await session.abortTransaction();

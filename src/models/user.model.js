@@ -9,11 +9,16 @@ import {
 import { hashPassword } from "../helpers/schema/passwordhash.js";
 
 const userSchema = new Schema({
+  role: commonStringConstraints,
   email: uniqueEmailConstraint,
   rollNumber: commonUniqueStringConstraintRequiresd,
   password: passwordRequiredConstraint,
-  fingerprintKey: commonStringConstraints,
-  fingerprintImageUrl: commonStringConstraints,
+  fingerprintKey: {
+    type: String,
+  },
+  fingerprintImageUrl: {
+    type: String,
+  },
   date: {
     type: Date,
     default: getCurrentIndianTime(),

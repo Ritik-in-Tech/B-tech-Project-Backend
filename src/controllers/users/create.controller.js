@@ -10,16 +10,16 @@ import { generateQRDataURL } from "../../helpers/qr/generate_qr.js";
 import { uploadQRToS3 } from "../../helpers/qr/upload_qr_aws.js";
 import { sendEmail } from "../../helpers/email/send_email.js";
 import mongoose from "mongoose";
+import { validRoles } from "../../constant.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    let { email, rollnumber, password, fingerprintKey, fingerprintUrl } =
+    let { role, email, rollnumber, password, fingerprintKey, fingerprintUrl } =
       req.body;
-    if (!email || !rollnumber || !password) {
-      // console.log("Incomplete info");
+    if (!role || !email || !password) {
       return res
         .status(400)
         .json(
@@ -27,30 +27,53 @@ export const registerUser = asyncHandler(async (req, res) => {
         );
     }
 
-    if (!validateIITJEmail(email)) {
-      // console.log(`Invalid Email: ${email}`);
+    if (!validRoles.includes(role)) {
       return res
         .status(400)
         .json(
           new ApiResponse(
             400,
             {},
-            `${email} is not a valid IITJ email address!`
+            "Invalid role. Please choose between 'admin','students' or 'mess"
           )
         );
     }
 
-    if (!validateRollNumber(rollnumber)) {
-      // console.log(`Invalid rollnumber: ${rollnumber}`);
-      return res
-        .status(400)
-        .json(
-          new ApiResponse(
-            400,
-            {},
-            `Roll number must contain only uppercase letters and numbers.`
-          )
-        );
+    if (role === "students") {
+      if (!validateIITJEmail(email)) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              `${email} is not a valid IITJ email address!`
+            )
+          );
+      }
+      if (!rollnumber || !fingerprintKey || !fingerprintUrl) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              "Please provide all the required fields for students"
+            )
+          );
+      }
+
+      if (!validateRollNumber(rollnumber)) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              `Roll number must contain only uppercase letters and numbers.`
+            )
+          );
+      }
     }
 
     if (!validatePassword(password)) {
@@ -60,7 +83,7 @@ export const registerUser = asyncHandler(async (req, res) => {
           new ApiResponse(
             400,
             {},
-            `Minimun password length should be greater than 7`
+            `Minimun password length should be greater than 5`
           )
         );
     }
@@ -73,62 +96,82 @@ export const registerUser = asyncHandler(async (req, res) => {
         .json(new ApiResponse(400, {}, `This email is already used`));
     }
 
-    const existingUserRollNumber = await User.findOne({
-      rollNumber: rollnumber,
-    }).session(session);
+    if (role === "students") {
+      const existingUserRollNumber = await User.findOne({
+        rollNumber: rollnumber,
+      }).session(session);
 
-    if (existingUserRollNumber) {
-      await abortTransaction();
-      return res
-        .status(400)
-        .json(
-          new ApiResponse(400, {}, `This rollNumber is already registered`)
-        );
+      if (existingUserRollNumber) {
+        await abortTransaction();
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(400, {}, `This rollNumber is already registered`)
+          );
+      }
     }
 
-    const user = new User({
-      email: email,
-      rollNumber: rollnumber,
-      password: password,
-      fingerprintKey: fingerprintKey,
-      fingerprintImageUrl: fingerprintUrl,
-    });
+    let user;
+    if (role === "admin" || role === "mess") {
+      user = new User({
+        role: role,
+        email: email,
+        password: password,
+      });
+    } else {
+      user = new User({
+        role: role,
+        email: email,
+        password: password,
+        fingerprintImageUrl: fingerprintUrl,
+        fingerprintKey: fingerprintKey,
+        rollNumber: rollnumber,
+      });
+    }
 
     await user.save({ session });
 
-    const { qrCodeDataURL, rollHash } = await generateQRDataURL(rollnumber);
+    if (role === "students") {
+      const { qrCodeDataURL, rollHash } = await generateQRDataURL(rollnumber);
 
-    // Upload QR Code to AWS S3
-    const qrCodeURL = await uploadQRToS3(qrCodeDataURL, rollnumber);
+      // Upload QR Code to AWS S3
+      const qrCodeURL = await uploadQRToS3(qrCodeDataURL, rollnumber);
 
-    // Prepare Email Options
-    const mailOptions = {
-      from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`, // Sender address
-      to: email, // Receiver's email
-      subject: "Welcome! Here is your QR Code",
-      html: `
+      // Prepare Email Options
+      const mailOptions = {
+        from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`, // Sender address
+        to: email,
+        subject: "Welcome! Here is your QR Code",
+        html: `
         <p>Thank you for registering.</p>
         <p>Your Roll Number: ${rollnumber}</p>
         <p>Here is your secure QR Code:</p>
         <img src="${qrCodeURL}" alt="QR Code" />
         <p>Please keep this QR code safe. It contains your unique identifier.</p>
       `,
-    };
+      };
 
-    await sendEmail(mailOptions);
+      await sendEmail(mailOptions);
+    }
 
     await session.commitTransaction();
     session.endSession(); // End the session
 
-    return res
-      .status(201)
-      .json(
-        new ApiResponse(
-          201,
-          {},
-          "User registered successfully! Please check your email for the QR code."
-        )
-      );
+    if (role === "students") {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(
+            200,
+            {},
+            "User registered successfully! Please check your email for the QR code."
+          )
+        );
+    } else {
+      return res
+        .status(201)
+        .json(new ApiResponse(201, {}, "User registered successfully!"));
+    }
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

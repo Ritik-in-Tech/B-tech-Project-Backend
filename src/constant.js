@@ -1,5 +1,7 @@
 export const validMessNames = ["Old", "New"];
 
+export const validRoles = ["admin", "students", "mess"];
+
 export const messTime = {
   Breakfast: {
     start: "07:30",

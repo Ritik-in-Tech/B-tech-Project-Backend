@@ -39,5 +39,5 @@ const messSchema = new Schema({
   },
 });
 
-const Mess = model("Mess", messSchema);
+const Mess = model("mess", messSchema);
 export { Mess };

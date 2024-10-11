@@ -4,6 +4,7 @@ import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { comparePassword } from "../../helpers/schema/passwordhash.js";
 import { User } from "../../models/user.model.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 export const loginUser = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
@@ -84,6 +85,17 @@ export const loginUser = asyncHandler(async (req, res) => {
         );
     }
 
+    const userDetails = {
+      _id: exist._id,
+      role: exist.role,
+    };
+
+    const authToken = jwt.sign(
+      { userDetails },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: process.env.SECRET_EXPIR_TIME }
+    );
+
     await session.commitTransaction();
     session.endSession();
 
@@ -92,7 +104,7 @@ export const loginUser = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          {},
+          { authToken },
           getStatusMessage(200) + ": User logged in successfully"
         )
       );

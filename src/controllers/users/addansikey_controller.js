@@ -5,6 +5,19 @@ import { User } from "../../models/user.model.js";
 
 export const addAnsiKey = asyncHandler(async (req, res) => {
   try {
+    const role = req.user.role;
+    if (role !== "admin") {
+      return res
+        .status(403)
+        .json(
+          new ApiResponse(
+            403,
+            {},
+            "Only admin can add ansi Keys for the students"
+          )
+        );
+    }
+
     const { userId } = req.params;
     if (!userId) {
       return res

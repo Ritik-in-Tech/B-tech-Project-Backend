@@ -18,6 +18,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
   try {
     let { role, email, rollnumber, password } = req.body;
+
     if (!role || !email || !password) {
       return res
         .status(400)
@@ -33,7 +34,7 @@ export const registerUser = asyncHandler(async (req, res) => {
           new ApiResponse(
             400,
             {},
-            "Invalid role. Please choose between 'admin','students' or 'mess"
+            "Invalid role. Please choose between 'admin', 'students', or 'mess'"
           )
         );
     }
@@ -57,11 +58,10 @@ export const registerUser = asyncHandler(async (req, res) => {
             new ApiResponse(
               400,
               {},
-              "Please provide all the required fields for students"
+              "Please provide a roll number for students."
             )
           );
       }
-
       if (!validateRollNumber(rollnumber)) {
         return res
           .status(400)
@@ -69,7 +69,7 @@ export const registerUser = asyncHandler(async (req, res) => {
             new ApiResponse(
               400,
               {},
-              `Roll number must contain only uppercase letters and numbers.`
+              "Roll number must contain only uppercase letters and numbers."
             )
           );
       }
@@ -82,78 +82,75 @@ export const registerUser = asyncHandler(async (req, res) => {
           new ApiResponse(
             400,
             {},
-            `Minimun password length should be greater than 5`
+            "Minimum password length should be greater than 5"
           )
         );
     }
 
+    // Check if email is already in use
     const existingUser = await User.findOne({ email: email }).session(session);
     if (existingUser) {
       await session.abortTransaction();
       return res
         .status(400)
-        .json(new ApiResponse(400, {}, `This email is already used`));
+        .json(new ApiResponse(400, {}, "This email is already used"));
     }
 
+    // Check if roll number is already registered (only for students)
     if (role === "students") {
       const existingUserRollNumber = await User.findOne({
         rollNumber: rollnumber,
       }).session(session);
-
       if (existingUserRollNumber) {
-        await abortTransaction();
+        await session.abortTransaction();
         return res
           .status(400)
           .json(
-            new ApiResponse(400, {}, `This rollNumber is already registered`)
+            new ApiResponse(400, {}, "This roll number is already registered")
           );
       }
     }
 
-    let user;
-    if (role === "admin" || role === "mess") {
-      user = new User({
-        role: role,
-        email: email,
-        password: password,
-        isProfileComplete: true,
-      });
-    } else {
-      user = new User({
-        role: role,
-        email: email,
-        password: password,
-        rollNumber: rollnumber,
-      });
+    // Create the user based on the role
+    let userObj = {
+      role: role,
+      email: email,
+      password: password,
+      isProfileComplete: role !== "students", // Set to true for admin/mess, false for students
+    };
+
+    // Only add rollNumber for students
+    if (role === "students") {
+      userObj.rollNumber = rollnumber;
     }
 
+    const user = new User(userObj);
     await user.save({ session });
 
     if (role === "students") {
+      // Generate and send QR code for students
       const { qrCodeDataURL, rollHash } = await generateQRDataURL(rollnumber);
-
-      // Upload QR Code to AWS S3
       const qrCodeURL = await uploadQRToS3(qrCodeDataURL, rollnumber);
 
-      // Prepare Email Options
+      // Prepare and send email
       const mailOptions = {
-        from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`, // Sender address
+        from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`,
         to: email,
         subject: "Welcome! Here is your QR Code",
         html: `
-        <p>Thank you for registering.</p>
-        <p>Your Roll Number: ${rollnumber}</p>
-        <p>Here is your secure QR Code:</p>
-        <img src="${qrCodeURL}" alt="QR Code" />
-        <p>Please keep this QR code safe. It contains your unique identifier.</p>
-      `,
+          <p>Thank you for registering.</p>
+          <p>Your Roll Number: ${rollnumber}</p>
+          <p>Here is your secure QR Code:</p>
+          <img src="${qrCodeURL}" alt="QR Code" />
+          <p>Please keep this QR code safe. It contains your unique identifier.</p>
+        `,
       };
 
       await sendEmail(mailOptions);
     }
 
     await session.commitTransaction();
-    session.endSession(); // End the session
+    session.endSession();
 
     if (role === "students") {
       return res
@@ -173,9 +170,11 @@ export const registerUser = asyncHandler(async (req, res) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
-    console.log(error);
+    console.error(error);
     return res
       .status(500)
-      .json(new ApiResponse(500, { error }, "Internal server error"));
+      .json(
+        new ApiResponse(500, { error: error.message }, "Internal server error")
+      );
   }
 });

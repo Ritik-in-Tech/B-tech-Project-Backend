@@ -12,8 +12,6 @@ router.route("/").post(registerUser);
 
 router.route("/login").post(loginUser);
 
-router.route("/:rollNumber").get(getUser);
-
 router.use(verifyJwt);
 
 router.route("/").get(getAllUsers);
@@ -21,4 +19,6 @@ router.route("/").get(getAllUsers);
 router.route("/add-ansiKey/:userId").post(addAnsiKey);
 
 router.route("/get-ansiKey/:userId").get(getAnsiKey);
+
+router.route("/:rollNumber").get(getUser);
 export default router;

@@ -4,6 +4,26 @@ import { User } from "../../models/user.model.js";
 
 export const getAnsiKey = asyncHandler(async (req, res) => {
   try {
+    const role = req.user.role;
+
+    if (!role) {
+      return res
+        .status(403)
+        .json(new ApiResponse(403, {}, "Invalid token! Please login again."));
+    }
+
+    if (role !== "mess") {
+      return res
+        .status(403)
+        .json(
+          new ApiResponse(
+            403,
+            {},
+            "Only mess authorized person can get the encrypted ansi key"
+          )
+        );
+    }
+
     const { userId } = req.params;
     if (!userId) {
       return res

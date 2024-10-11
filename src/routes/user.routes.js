@@ -14,11 +14,11 @@ router.route("/login").post(loginUser);
 
 router.route("/:rollNumber").get(getUser);
 
-router.route("/get-ansiKey/:userId").get(getAnsiKey);
-
 router.use(verifyJwt);
 
 router.route("/").get(getAllUsers);
 
 router.route("/add-ansiKey/:userId").post(addAnsiKey);
+
+router.route("/get-ansiKey/:userId").get(getAnsiKey);
 export default router;

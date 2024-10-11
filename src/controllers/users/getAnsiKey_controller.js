@@ -1,20 +1,17 @@
-import { encrypt } from "../../helpers/encryption/encrypt_key.js";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { User } from "../../models/user.model.js";
 
 export const getAnsiKey = asyncHandler(async (req, res) => {
   try {
-    const { rollNumber } = req.params;
-    if (!rollNumber) {
+    const { userId } = req.params;
+    if (!userId) {
       return res
         .status(400)
-        .json(
-          new ApiResponse(400, {}, "Roll number is not provided in the params")
-        );
+        .json(new ApiResponse(400, {}, "UserID is not provided in the params"));
     }
 
-    const user = await User.findOne({ rollNumber: rollNumber });
+    const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json(new ApiResponse(404, {}, "User not found"));
     }
@@ -26,11 +23,11 @@ export const getAnsiKey = asyncHandler(async (req, res) => {
         .json(new ApiResponse(404, {}, "Fingerprint key not found"));
     }
 
-    const encryptedKey = encrypt(fingerprintKey);
-
     return res
       .status(200)
-      .json(new ApiResponse(200, { fingerprintKey: encryptedKey }, "Success"));
+      .json(
+        new ApiResponse(200, { fingerprintKey: fingerprintKey }, "Success")
+      );
   } catch (error) {
     console.error("Error in getAnsiKey:", error);
     return res

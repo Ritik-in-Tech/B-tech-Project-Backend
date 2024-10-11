@@ -19,6 +19,10 @@ const userSchema = new Schema({
   fingerprintImageUrl: {
     type: String,
   },
+  isProfileComplete: {
+    type: Boolean,
+    default: false,
+  },
   date: {
     type: Date,
     default: getCurrentIndianTime(),

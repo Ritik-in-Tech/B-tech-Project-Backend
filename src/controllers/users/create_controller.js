@@ -17,8 +17,7 @@ export const registerUser = asyncHandler(async (req, res) => {
   session.startTransaction();
 
   try {
-    let { role, email, rollnumber, password, fingerprintKey, fingerprintUrl } =
-      req.body;
+    let { role, email, rollnumber, password } = req.body;
     if (!role || !email || !password) {
       return res
         .status(400)
@@ -51,7 +50,7 @@ export const registerUser = asyncHandler(async (req, res) => {
             )
           );
       }
-      if (!rollnumber || !fingerprintKey || !fingerprintUrl) {
+      if (!rollnumber) {
         return res
           .status(400)
           .json(
@@ -117,14 +116,13 @@ export const registerUser = asyncHandler(async (req, res) => {
         role: role,
         email: email,
         password: password,
+        isProfileComplete: true,
       });
     } else {
       user = new User({
         role: role,
         email: email,
         password: password,
-        fingerprintImageUrl: fingerprintUrl,
-        fingerprintKey: fingerprintKey,
         rollNumber: rollnumber,
       });
     }

@@ -67,6 +67,21 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
 export const getUser = asyncHandler(async (req, res) => {
   try {
+    const role = req.user.role;
+
+    if (role === "students") {
+      return res
+        .status(403)
+        .json(
+          new ApiResponse(
+            403,
+            {},
+            getStatusMessage(403) +
+              ": Only admin and mess person can get user details"
+          )
+        );
+    }
+
     const { rollNumber } = req.params;
     if (!rollNumber) {
       return res

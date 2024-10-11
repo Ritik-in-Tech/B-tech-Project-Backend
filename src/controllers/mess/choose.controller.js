@@ -11,7 +11,21 @@ export const chooseMess = asyncHandler(async (req, res) => {
   session.startTransaction();
 
   try {
-    const { userId } = req.params;
+    const role = req.user.role;
+    if (role === "admin" || role === "mess") {
+      return res
+        .status(403)
+        .json(
+          new ApiResponse(
+            403,
+            {},
+            getStatusMessage(403) + ": Only student can choose mess facility"
+          )
+        );
+    }
+
+    const userId = req.user._id;
+    // console.log(userId);
     if (!userId) {
       return res
         .status(400)
@@ -19,7 +33,7 @@ export const chooseMess = asyncHandler(async (req, res) => {
           new ApiResponse(
             400,
             {},
-            getStatusMessage(400) + ": UserId not provided in params"
+            getStatusMessage(400) + ": UserId not found in jwt decoded token"
           )
         );
     }

@@ -15,6 +15,31 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
   session.startTransaction();
 
   try {
+    const role = req.user.role;
+    if (!role) {
+      return res
+        .status(401)
+        .json(
+          new ApiResponse(
+            401,
+            {},
+            getStatusMessage(401) + ": Token is invalid. Please log in again"
+          )
+        );
+    }
+
+    if (role !== "mess") {
+      return res
+        .status(403)
+        .json(
+          new ApiResponse(
+            403,
+            {},
+            getStatusMessage(403) + ": Only mess staff can entry the mess data"
+          )
+        );
+    }
+
     const { rollNumber, mess } = req.body;
     if (!rollNumber || !mess) {
       return res

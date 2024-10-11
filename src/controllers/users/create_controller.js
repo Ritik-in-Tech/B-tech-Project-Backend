@@ -10,7 +10,7 @@ import { generateQRDataURL } from "../../helpers/qr/generate_qr.js";
 import { uploadQRToS3 } from "../../helpers/qr/upload_qr_aws.js";
 import { sendEmail } from "../../helpers/email/send_email.js";
 import mongoose from "mongoose";
-import { validRoles } from "../../constant.js";
+import { validAdminEmail, validMessEmail, validRoles } from "../../constant.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
@@ -35,6 +35,30 @@ export const registerUser = asyncHandler(async (req, res) => {
             400,
             {},
             "Invalid role. Please choose between 'admin', 'students', or 'mess'"
+          )
+        );
+    }
+
+    if (role === "admin" && !validAdminEmail.includes(email)) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            "Provided admin email is not allowed. Please provide a valid admin email."
+          )
+        );
+    }
+
+    if (role === "mess" && !validMessEmail.includes(email)) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            "Provided mess email is not allowed. Please provide a valid mess email."
           )
         );
     }

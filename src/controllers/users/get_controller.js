@@ -5,7 +5,35 @@ import { getStatusMessage } from "../../helpers/response/statuscode.js";
 
 export const getAllUsers = asyncHandler(async (req, res) => {
   try {
-    const users = await User.find().select("email rollNumber -_id");
+    const role = req.user.role;
+
+    if (!role) {
+      return res
+        .status(401)
+        .json(
+          new ApiResponse(
+            401,
+            {},
+            getStatusMessage(401) + " : Token is not valid"
+          )
+        );
+    }
+
+    if (role !== "admin") {
+      return res
+        .status(403)
+        .json(
+          new ApiResponse(
+            403,
+            {},
+            getStatusMessage(403) + " : Only admin can get all Users"
+          )
+        );
+    }
+
+    const users = await User.find({ role: "students" }).select(
+      "email rollNumber _id isProfileComplete"
+    );
 
     if (users.length === 0) {
       return res
@@ -39,6 +67,21 @@ export const getAllUsers = asyncHandler(async (req, res) => {
 
 export const getUser = asyncHandler(async (req, res) => {
   try {
+    const role = req.user.role;
+
+    if (role === "students") {
+      return res
+        .status(403)
+        .json(
+          new ApiResponse(
+            403,
+            {},
+            getStatusMessage(403) +
+              ": Only admin and mess person can get user details"
+          )
+        );
+    }
+
     const { rollNumber } = req.params;
     if (!rollNumber) {
       return res

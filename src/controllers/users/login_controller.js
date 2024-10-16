@@ -4,14 +4,15 @@ import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { comparePassword } from "../../helpers/schema/passwordhash.js";
 import { User } from "../../models/user.model.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 
 export const loginUser = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { rollnumber, password } = req.body;
-    if (!rollnumber || !password) {
+    const { role, rollnumber, password, email } = req.body;
+    if (!role || !password) {
       return res
         .status(400)
         .json(
@@ -23,9 +24,40 @@ export const loginUser = asyncHandler(async (req, res) => {
         );
     }
 
-    const exist = await User.findOne({
-      rollNumber: rollnumber,
-    }).session(session);
+    let exist;
+    if (role === "admin" || role === "mess") {
+      if (!email) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              getStatusMessage(400) +
+                ": email is required for the admin and mess in the body to logIN"
+            )
+          );
+      }
+      exist = await User.findOne({
+        email: email,
+      }).session(session);
+    } else {
+      if (!rollnumber) {
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              getStatusMessage(400) +
+                ": rollNumber is required for the students in the body to logIN"
+            )
+          );
+      }
+      exist = await User.findOne({
+        rollNumber: rollnumber,
+      }).session(session);
+    }
 
     if (!exist) {
       await session.abortTransaction();
@@ -53,6 +85,17 @@ export const loginUser = asyncHandler(async (req, res) => {
         );
     }
 
+    const userDetails = {
+      _id: exist._id,
+      role: exist.role,
+    };
+
+    const authToken = jwt.sign(
+      { userDetails },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: process.env.SECRET_EXPIR_TIME }
+    );
+
     await session.commitTransaction();
     session.endSession();
 
@@ -61,7 +104,7 @@ export const loginUser = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(
           200,
-          {},
+          { authToken },
           getStatusMessage(200) + ": User logged in successfully"
         )
       );

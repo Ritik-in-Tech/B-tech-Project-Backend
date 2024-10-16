@@ -9,6 +9,6 @@ export const validateRollNumber = (rollNumber) => {
 };
 
 export const validatePassword = (password) => {
-  const minLength = 8;
+  const minLength = 6;
   return password.length >= minLength;
 };

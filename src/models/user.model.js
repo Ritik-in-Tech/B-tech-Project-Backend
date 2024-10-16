@@ -2,18 +2,34 @@ import { Schema, model } from "mongoose";
 import { getCurrentIndianTime } from "../helpers/time/time.helper.js";
 import {
   commonStringConstraints,
-  commonUniqueStringConstraintRequiresd,
   passwordRequiredConstraint,
   uniqueEmailConstraint,
 } from "../helpers/schema/schema.helper.js";
 import { hashPassword } from "../helpers/schema/passwordhash.js";
 
 const userSchema = new Schema({
+  role: commonStringConstraints,
   email: uniqueEmailConstraint,
-  rollNumber: commonUniqueStringConstraintRequiresd,
+  rollNumber: {
+    type: String,
+    required: function () {
+      return this.role === "students";
+    },
+    unique: function () {
+      return this.role === "students";
+    },
+  },
   password: passwordRequiredConstraint,
-  fingerprintKey: commonStringConstraints,
-  fingerprintImageUrl: commonStringConstraints,
+  fingerprintKey: {
+    type: String,
+  },
+  fingerprintImageUrl: {
+    type: String,
+  },
+  isProfileComplete: {
+    type: Boolean,
+    default: false,
+  },
   date: {
     type: Date,
     default: getCurrentIndianTime(),

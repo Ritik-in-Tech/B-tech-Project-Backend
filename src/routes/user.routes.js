@@ -1,9 +1,10 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/users/create.controller.js";
-import { loginUser } from "../controllers/users/login.controller.js";
-import { getAllUsers, getUser } from "../controllers/users/get.controller.js";
-import { verifyFinger } from "../controllers/users/verifyfinger.controller.js";
-import { getAnsiKey } from "../controllers/users/getAnsiKey.js";
+import { registerUser } from "../controllers/users/create_controller.js";
+import { loginUser } from "../controllers/users/login_controller.js";
+import { getAllUsers, getUser } from "../controllers/users/get_controller.js";
+import { getAnsiKey } from "../controllers/users/getAnsiKey_controller.js";
+import { addAnsiKey } from "../controllers/users/addansikey_controller.js";
+import { verifyJwt } from "../middlewares/auth_middleware.js";
 
 const router = Router();
 
@@ -11,11 +12,13 @@ router.route("/").post(registerUser);
 
 router.route("/login").post(loginUser);
 
+router.use(verifyJwt);
+
 router.route("/").get(getAllUsers);
 
+router.route("/add-ansiKey/:userId").post(addAnsiKey);
+
+router.route("/get-ansiKey/:userId").get(getAnsiKey);
+
 router.route("/:rollNumber").get(getUser);
-
-router.route("/verify-finger").post(verifyFinger);
-
-router.route("/get-ansiKey/:rollNumber").get(getAnsiKey);
 export default router;

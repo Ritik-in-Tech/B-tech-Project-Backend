@@ -49,11 +49,10 @@ export const uniqueEmailConstraint = {
   unique: true,
 };
 
-export const commonUniqueStringConstraintRequiresd = {
-  type: String,
-  required: true,
-  unique: true,
-};
+// export const commonUniqueStringConstraintRequiresd = {
+//   type: String,
+//   unique: true,
+// };
 
 export const commonNumberConstraintsRequired = {
   type: Number,
@@ -63,5 +62,4 @@ export const commonNumberConstraintsRequired = {
 export const passwordRequiredConstraint = {
   type: String,
   required: true,
-  minlength: 8,
 };

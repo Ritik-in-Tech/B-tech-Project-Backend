@@ -40,6 +40,7 @@ export const loginUser = asyncHandler(async (req, res) => {
       }
       exist = await User.findOne({
         email: email,
+        role: role,
       }).session(session);
     } else {
       if (!rollnumber) {

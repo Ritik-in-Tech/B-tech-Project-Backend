@@ -29,7 +29,15 @@ export const verifyJwt = asyncHandler(async (req, res, next) => {
     req.userDetails = decodedToken?.userDetails;
     next();
   } catch (error) {
-    console.error("Error verifying JWT:", error);
+    // console.error("Error verifying JWT:", error);
+
+    if (error.name === "TokenExpiredError") {
+      return res
+        .status(401)
+        .json(new ApiResponse(401, {}, "Token has expired"));
+    }
+
+    // Handle other errors
     return res
       .status(500)
       .json(

@@ -5,6 +5,7 @@ import { comparePassword } from "../../helpers/schema/passwordhash.js";
 import { User } from "../../models/user.model.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
+import { validRoles } from "../../constant.js";
 
 export const loginUser = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
@@ -20,6 +21,18 @@ export const loginUser = asyncHandler(async (req, res) => {
             400,
             {},
             getStatusMessage(400) + ": Please provide all the required fields"
+          )
+        );
+    }
+
+    if (!validRoles.includes(role)) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            "Invalid role. Please provide a valid role: admin, mess, or students"
           )
         );
     }

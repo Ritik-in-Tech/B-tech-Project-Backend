@@ -11,14 +11,14 @@ export const getStudentByRollNumber = asyncHandler(async (req, res) => {
         .json(new ApiResponse(401, {}, "Invalid token! Please login again."));
     }
 
-    if (role !== "admin") {
+    if (role === "students") {
       return res
         .status(403)
         .json(
           new ApiResponse(
             403,
             {},
-            "Only admin can access to get user details via RollNumber."
+            "Only admin and mess-staff can access to get user details via RollNumber."
           )
         );
     }

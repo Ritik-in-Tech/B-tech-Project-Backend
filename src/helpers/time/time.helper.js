@@ -6,6 +6,14 @@ export function getCurrentIndianTime() {
   return istTime;
 }
 
+export function convertToIST(date) {
+  let currentDate = new Date(date);
+  let utcTime = currentDate.getTime();
+  let istOffset = 5.5 * 60 * 60 * 1000;
+  let istTime = new Date(utcTime + istOffset);
+  return istTime;
+}
+
 export function getCurrentUTCTime() {
   return new Date();
 }

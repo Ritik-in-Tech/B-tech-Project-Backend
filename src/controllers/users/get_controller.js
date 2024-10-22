@@ -32,7 +32,7 @@ export const getAllUsers = asyncHandler(async (req, res) => {
     }
 
     const users = await User.find({ role: "students" }).select(
-      "email rollNumber _id isProfileComplete"
+      "email rollNumber -_id"
     );
 
     if (users.length === 0) {

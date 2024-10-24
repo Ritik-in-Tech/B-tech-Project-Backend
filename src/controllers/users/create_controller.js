@@ -10,6 +10,7 @@ import { generateQRDataURL } from "../../helpers/qr/generate_qr.js";
 import { uploadQRToS3 } from "../../helpers/qr/upload_qr_aws.js";
 import { sendEmail } from "../../helpers/email/send_email.js";
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken";
 import { validAdminEmail, validMessEmail, validRoles } from "../../constant.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
@@ -151,6 +152,18 @@ export const registerUser = asyncHandler(async (req, res) => {
     const user = new User(userObj);
     await user.save({ session });
 
+    // Generate a token using the newly created user's _id and role
+    const userDetails = {
+      _id: user._id, 
+      role: user.role,
+    };
+
+    const authToken = jwt.sign(
+      { userDetails },
+      process.env.ACCESS_TOKEN_SECRET,
+      { expiresIn: process.env.SECRET_EXPIR_TIME }
+    );
+
     if (role === "students") {
       // Generate and send QR code for students
       const { qrCodeDataURL, rollHash } = await generateQRDataURL(rollnumber);
@@ -176,21 +189,11 @@ export const registerUser = asyncHandler(async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-    if (role === "students") {
-      return res
-        .status(200)
-        .json(
-          new ApiResponse(
-            200,
-            {},
-            "User registered successfully! Please check your email for the QR code."
-          )
-        );
-    } else {
-      return res
-        .status(201)
-        .json(new ApiResponse(201, {}, "User registered successfully!"));
-    }
+
+    return res
+      .status(201)
+      .json(new ApiResponse(201, { authToken }, "User registered successfully! Please check your email for the QR code"));
+
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

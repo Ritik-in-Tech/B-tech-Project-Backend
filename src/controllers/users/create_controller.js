@@ -154,7 +154,7 @@ export const registerUser = asyncHandler(async (req, res) => {
 
     // Generate a token using the newly created user's _id and role
     const userDetails = {
-      _id: user._id, 
+      _id: user._id,
       role: user.role,
     };
 
@@ -189,11 +189,15 @@ export const registerUser = asyncHandler(async (req, res) => {
     await session.commitTransaction();
     session.endSession();
 
-
     return res
       .status(201)
-      .json(new ApiResponse(201, { authToken }, "User registered successfully! Please check your email for the QR code"));
-
+      .json(
+        new ApiResponse(
+          201,
+          { authToken },
+          "User registered successfully! Please check your email for the QR code"
+        )
+      );
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

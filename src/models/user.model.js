@@ -30,6 +30,9 @@ const userSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  rollHash: {
+    type: String,
+  },
   date: {
     type: Date,
     default: getCurrentIndianTime(),

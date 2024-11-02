@@ -1,32 +1,25 @@
-import { messTime, validMessNames } from "../../constant.js";
+import mongoose from "mongoose";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
-import { getStatusMessage } from "../../helpers/response/statuscode.js";
+import { User } from "../../models/user.model.js";
+import { messTime, validMessNames } from "../../constant.js";
+import { Mess } from "../../models/mess.model.js";
 import {
   getCurrentHoursMinutes,
   getCurrentIndianTime,
 } from "../../helpers/time/time.helper.js";
-import { Mess } from "../../models/mess.model.js";
-import mongoose from "mongoose";
-import { User } from "../../models/user.model.js";
+import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { isTimeInRange } from "../../helpers/time/entry_time_match.js";
 
-export const EntryDataMess = asyncHandler(async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
+export const entryMessQR = asyncHandler(async (req, res) => {
   try {
+    const session = await mongoose.startSession();
+    session.startTransaction();
     const role = req.user.role;
     if (!role) {
       return res
         .status(401)
-        .json(
-          new ApiResponse(
-            401,
-            {},
-            getStatusMessage(401) + ": Token is invalid. Please log in again"
-          )
-        );
+        .json(new ApiResponse(401, {}, "Invalid token! Please login again."));
     }
 
     if (role !== "mess") {
@@ -36,60 +29,44 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
           new ApiResponse(
             403,
             {},
-            getStatusMessage(403) + ": Only mess staff can entry the mess data"
+            "Only mess staff can do the entry for the students"
           )
         );
     }
 
-    const { rollNumber, mess } = req.body;
-    if (!rollNumber || !mess) {
+    const { rollHash, mess } = req.body;
+    if (!rollHash || !mess) {
       return res
         .status(400)
         .json(
           new ApiResponse(
             400,
             {},
-            getStatusMessage(400) +
-              ": rollNumber or mess is not provided in the body"
+            "Roll Hash or Mess is missing from Body request"
           )
         );
     }
-
-    const user = await User.findOne({ rollNumber: rollNumber })
-      .select("_id")
-      .session(session);
-    if (!user) {
-      await session.abortTransaction();
-      return res
-        .status(404)
-        .json(
-          new ApiResponse(
-            404,
-            {},
-            getStatusMessage(404) + ": Fingerprint is not registered"
-          )
-        );
-    }
-
-    const userId = user._id;
 
     if (!validMessNames.includes(mess)) {
       return res
         .status(400)
-        .json(
-          new ApiResponse(
-            400,
-            {},
-            getStatusMessage(400) +
-              ": Not a valid mess name, Only Old or New are valid"
-          )
-        );
+        .json(new ApiResponse(400, {}, "Invalid mess name."));
     }
 
-    const messDetail = await Mess.findOne({
-      userId: userId,
-      mess: mess,
-    })
+    const user = await User.findOne({ rollHash: rollHash }).session(session);
+    if (!user) {
+      await session.abortTransaction();
+      return res.status(404).json(new ApiResponse(404, {}, "User not found."));
+    }
+
+    if (user.role !== "students") {
+      return res
+        .status(403)
+        .json(new ApiResponse(403, {}, "Roll hash is not setup correctly."));
+    }
+
+    const userId = user._id;
+    const messDetail = await Mess.findOne({ userId: userId, mess: mess })
       .select("startDate endDate data")
       .session(session);
 
@@ -97,13 +74,7 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
       await session.abortTransaction();
       return res
         .status(404)
-        .json(
-          new ApiResponse(
-            404,
-            {},
-            getStatusMessage(404) + ": Mess detail not found for this user"
-          )
-        );
+        .json(new ApiResponse(404, {}, "Mess detail not found for this user"));
     }
 
     const startDate = messDetail.startDate;
@@ -111,6 +82,18 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
 
     const istDate = getCurrentIndianTime();
     // console.log(istDate);
+
+    if (startDate > istDate || istDate > endDate) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            getStatusMessage(400) + ": You have not permission to eat today"
+          )
+        );
+    }
     const { currentHour, currentMinute } = getCurrentHoursMinutes(istDate);
     const currentTime = `${String(currentHour).padStart(2, "0")}:${String(
       currentMinute
@@ -118,9 +101,11 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
 
     // console.log(currentTime);
 
+    // console.log(start, end);
     // Determine current meal
     let currentMeal = null;
     for (const [meal, { start, end }] of Object.entries(messTime)) {
+      console.log(start, end, meal);
       if (isTimeInRange(start, end, currentTime)) {
         currentMeal = meal;
         break;
@@ -139,22 +124,6 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
           )
         );
     }
-
-    // console.log(currentMeal);
-
-    if (startDate > istDate || istDate > endDate) {
-      return res
-        .status(400)
-        .json(
-          new ApiResponse(
-            400,
-            {},
-            getStatusMessage(400) + ": You have not permission to eat today"
-          )
-        );
-    }
-
-    // console.log(messDetail);
 
     const mealData = messDetail.data || [];
 
@@ -206,17 +175,7 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
         )
       );
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
     console.log(error);
-    return res
-      .status(500)
-      .json(
-        new ApiResponse(
-          500,
-          { error },
-          getStatusMessage(500) + ": Internal server error"
-        )
-      );
+    return res.status(500).json(new ApiResponse(500, {}, "An error occurred."));
   }
 });

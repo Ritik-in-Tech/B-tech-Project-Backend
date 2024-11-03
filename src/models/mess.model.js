@@ -4,19 +4,13 @@ import { getCurrentIndianTime } from "../helpers/time/time.helper.js";
 
 const dataSchema = new Schema(
   {
-    date: {
-      type: Date,
-      default: getCurrentIndianTime(),
-    },
     type: commonStringConstraints,
     isDone: {
       type: Boolean,
       default: false,
     },
   },
-  {
-    _id: false,
-  }
+  { _id: false }
 );
 
 const messSchema = new Schema({
@@ -34,8 +28,9 @@ const messSchema = new Schema({
     default: getCurrentIndianTime(),
   },
   data: {
-    type: [dataSchema],
-    default: [],
+    type: Map,
+    of: [dataSchema],
+    default: {},
   },
 });
 

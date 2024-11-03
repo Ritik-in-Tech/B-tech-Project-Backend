@@ -8,10 +8,16 @@ export const validAdminEmail = [
   "admin2@iitj.ac.in",
 ];
 
-export const validMessEmail = [
-  "mess@iitj.ac.in",
-  "mess1@iitj.ac.in",
-  "mess2@iitj.ac.in",
+export const validOldMessEmail = [
+  "oldmess@iitj.ac.in",
+  "oldmess1@iitj.ac.in",
+  "oldmess2@iitj.ac.in",
+];
+
+export const validNewMessEmail = [
+  "newmess@iitj.ac.in",
+  "newmess1@iitj.ac.in",
+  "newmess2@iitj.ac.in",
 ];
 
 export const messTime = {

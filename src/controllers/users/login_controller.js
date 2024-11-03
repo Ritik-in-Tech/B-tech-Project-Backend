@@ -102,6 +102,7 @@ export const loginUser = asyncHandler(async (req, res) => {
     const userDetails = {
       _id: exist._id,
       role: exist.role,
+      email: exist.email,
     };
 
     const authToken = jwt.sign(

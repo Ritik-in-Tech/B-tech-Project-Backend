@@ -11,7 +11,12 @@ import { uploadQRToS3 } from "../../helpers/qr/upload_qr_aws.js";
 import { sendEmail } from "../../helpers/email/send_email.js";
 import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import { validAdminEmail, validMessEmail, validRoles } from "../../constant.js";
+import {
+  validAdminEmail,
+  validNewMessEmail,
+  validOldMessEmail,
+  validRoles,
+} from "../../constant.js";
 
 export const registerUser = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
@@ -52,7 +57,11 @@ export const registerUser = asyncHandler(async (req, res) => {
         );
     }
 
-    if (role === "mess" && !validMessEmail.includes(email)) {
+    if (
+      role === "mess" &&
+      !validOldMessEmail.includes(email) &&
+      !validNewMessEmail.includes(email)
+    ) {
       return res
         .status(400)
         .json(
@@ -156,6 +165,7 @@ export const registerUser = asyncHandler(async (req, res) => {
     const userDetails = {
       _id: user._id,
       role: user.role,
+      email: user.email,
     };
 
     const authToken = jwt.sign(

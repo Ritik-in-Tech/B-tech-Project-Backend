@@ -1,4 +1,9 @@
-import { messTime, validMessNames } from "../../constant.js";
+import {
+  messTime,
+  validMessNames,
+  validNewMessEmail,
+  validOldMessEmail,
+} from "../../constant.js";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
@@ -41,16 +46,37 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
         );
     }
 
-    const { rollNumber, mess } = req.body;
-    if (!rollNumber || !mess) {
+    const reqUserEmail = req.user.email;
+    if (!reqUserEmail) {
+      return res
+        .status(401)
+        .json(
+          new ApiResponse(
+            401,
+            {},
+            getStatusMessage(401) + ": Token is invalid. Please log in again"
+          )
+        );
+    }
+
+    // console.log(validOldMessEmail.includes(reqUserEmail));
+
+    let mess;
+    if (validOldMessEmail.includes(reqUserEmail)) {
+      mess = "Old";
+    } else if (validNewMessEmail.includes(reqUserEmail)) {
+      mess = "New";
+    }
+
+    const { rollNumber } = req.body;
+    if (!rollNumber) {
       return res
         .status(400)
         .json(
           new ApiResponse(
             400,
             {},
-            getStatusMessage(400) +
-              ": rollNumber or mess is not provided in the body"
+            getStatusMessage(400) + ": rollNumber is not provided in the body"
           )
         );
     }
@@ -101,7 +127,8 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
           new ApiResponse(
             404,
             {},
-            getStatusMessage(404) + ": Mess detail not found for this user"
+            getStatusMessage(404) +
+              ": Please check once again I think you have registered other mess"
           )
         );
     }

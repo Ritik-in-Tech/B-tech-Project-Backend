@@ -2,7 +2,12 @@ import mongoose from "mongoose";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { User } from "../../models/user.model.js";
-import { messTime, validMessNames } from "../../constant.js";
+import {
+  messTime,
+  validMessNames,
+  validNewMessEmail,
+  validOldMessEmail,
+} from "../../constant.js";
 import { Mess } from "../../models/mess.model.js";
 import {
   getCurrentHoursMinutes,
@@ -34,17 +39,25 @@ export const entryMessQR = asyncHandler(async (req, res) => {
         );
     }
 
-    const { rollHash, mess } = req.body;
-    if (!rollHash || !mess) {
+    const reqUserEmail = req.user.email;
+    if (!reqUserEmail) {
+      return res
+        .status(401)
+        .json(new ApiResponse(401, {}, "Invalid token! Please login again."));
+    }
+
+    let mess;
+    if (validOldMessEmail.includes(reqUserEmail)) {
+      mess = "Old";
+    } else if (validNewMessEmail.includes(reqUserEmail)) {
+      mess = "New";
+    }
+
+    const { rollHash } = req.body;
+    if (!rollHash) {
       return res
         .status(400)
-        .json(
-          new ApiResponse(
-            400,
-            {},
-            "Roll Hash or Mess is missing from Body request"
-          )
-        );
+        .json(new ApiResponse(400, {}, "Hash is missing from Body request"));
     }
 
     if (!validMessNames.includes(mess)) {
@@ -74,7 +87,13 @@ export const entryMessQR = asyncHandler(async (req, res) => {
       await session.abortTransaction();
       return res
         .status(404)
-        .json(new ApiResponse(404, {}, "Mess detail not found for this user"));
+        .json(
+          new ApiResponse(
+            404,
+            {},
+            "Please check once again I think you have registered other mess"
+          )
+        );
     }
 
     const startDate = messDetail.startDate;

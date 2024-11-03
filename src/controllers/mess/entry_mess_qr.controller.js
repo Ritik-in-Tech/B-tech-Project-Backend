@@ -15,6 +15,7 @@ import {
 } from "../../helpers/time/time.helper.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { isTimeInRange } from "../../helpers/time/entry_time_match.js";
+import { addOrUpdateEntry } from "../../helpers/schema/mess_entry.js";
 
 export const entryMessQR = asyncHandler(async (req, res) => {
   try {
@@ -79,6 +80,7 @@ export const entryMessQR = asyncHandler(async (req, res) => {
     }
 
     const userId = user._id;
+    // console.log(userId);
     const messDetail = await Mess.findOne({ userId: userId, mess: mess })
       .select("startDate endDate data")
       .session(session);
@@ -124,7 +126,7 @@ export const entryMessQR = asyncHandler(async (req, res) => {
     // Determine current meal
     let currentMeal = null;
     for (const [meal, { start, end }] of Object.entries(messTime)) {
-      console.log(start, end, meal);
+      // console.log(start, end, meal);
       if (isTimeInRange(start, end, currentTime)) {
         currentMeal = meal;
         break;
@@ -144,55 +146,36 @@ export const entryMessQR = asyncHandler(async (req, res) => {
         );
     }
 
-    const mealData = messDetail.data || [];
+    const dateKey = istDate.toISOString().split("T")[0];
 
-    // console.log(mealData);
+    // console.log(messDetail.data);
 
-    const hasTakenMeal = mealData.some(
-      (entry) =>
-        entry.type === currentMeal &&
-        entry.date.toISOString().slice(0, 10) ===
-          istDate.toISOString().slice(0, 10) &&
-        entry.isDone
-    );
+    const existingEntries = messDetail.data.get(dateKey) || [];
 
-    // console.log(hasTakenMeal);
-
-    if (hasTakenMeal) {
-      await session.abortTransaction();
-      return res
-        .status(400)
-        .json(
-          new ApiResponse(
-            400,
-            {},
-            getStatusMessage(400) +
-              ": You have already taken this meal for today"
-          )
-        );
+    for (const existingEntry of existingEntries) {
+      if (existingEntry.type === currentMeal && existingEntry.isDone) {
+        await session.abortTransaction();
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              getStatusMessage(400) +
+                ": You have already taken this meal for today"
+            )
+          );
+      }
     }
 
-    mealData.push({
-      date: istDate,
-      type: currentMeal,
-      isDone: true,
-    });
-
-    messDetail.data = mealData;
-    await messDetail.save({ session });
+    await addOrUpdateEntry(messDetail, istDate, currentMeal, true);
 
     await session.commitTransaction();
     session.endSession();
 
     return res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          { message: "Meal entry created successfully" },
-          getStatusMessage(200)
-        )
-      );
+      .json(new ApiResponse(200, {}, "Meal Record successfully"));
   } catch (error) {
     console.log(error);
     return res.status(500).json(new ApiResponse(500, {}, "An error occurred."));

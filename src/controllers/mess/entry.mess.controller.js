@@ -15,6 +15,7 @@ import { Mess } from "../../models/mess.model.js";
 import mongoose from "mongoose";
 import { User } from "../../models/user.model.js";
 import { isTimeInRange } from "../../helpers/time/entry_time_match.js";
+import { addOrUpdateEntry } from "../../helpers/schema/mess_entry.js";
 
 export const EntryDataMess = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
@@ -181,57 +182,37 @@ export const EntryDataMess = asyncHandler(async (req, res) => {
         );
     }
 
-    // console.log(messDetail);
+    const dateKey = istDate.toISOString().split("T")[0];
 
-    const mealData = messDetail.data || [];
+    // console.log(messDetail.data);
 
-    // console.log(mealData);
+    const existingEntries = messDetail.data.get(dateKey) || [];
+    // console.log(existingEntries);
 
-    const hasTakenMeal = mealData.some(
-      (entry) =>
-        entry.type === currentMeal &&
-        entry.date.toISOString().slice(0, 10) ===
-          istDate.toISOString().slice(0, 10) &&
-        entry.isDone
-    );
-
-    // console.log(hasTakenMeal);
-
-    if (hasTakenMeal) {
-      await session.abortTransaction();
-      return res
-        .status(400)
-        .json(
-          new ApiResponse(
-            400,
-            {},
-            getStatusMessage(400) +
-              ": You have already taken this meal for today"
-          )
-        );
+    for (const existingEntry of existingEntries) {
+      if (existingEntry.type === currentMeal && existingEntry.isDone) {
+        await session.abortTransaction();
+        return res
+          .status(400)
+          .json(
+            new ApiResponse(
+              400,
+              {},
+              getStatusMessage(400) +
+                ": You have already taken this meal for today"
+            )
+          );
+      }
     }
 
-    mealData.push({
-      date: istDate,
-      type: currentMeal,
-      isDone: true,
-    });
-
-    messDetail.data = mealData;
-    await messDetail.save({ session });
+    await addOrUpdateEntry(messDetail, istDate, currentMeal, true);
 
     await session.commitTransaction();
     session.endSession();
 
     return res
       .status(200)
-      .json(
-        new ApiResponse(
-          200,
-          { message: "Meal entry created successfully" },
-          getStatusMessage(200)
-        )
-      );
+      .json(new ApiResponse(200, {}, "Meal Record successfully"));
   } catch (error) {
     await session.abortTransaction();
     session.endSession();

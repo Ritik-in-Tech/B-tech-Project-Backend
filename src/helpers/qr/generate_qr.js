@@ -17,12 +17,10 @@
 //   }
 // };
 
-
 // src/helpers/qr/generate_qr.js
 
-import QRCode from 'qrcode';
-import crypto from 'crypto';
-
+import QRCode from "qrcode";
+import crypto from "crypto";
 
 /**
  * Generates a hashed value for the roll number using HMAC SHA256.
@@ -31,7 +29,7 @@ import crypto from 'crypto';
  */
 const generateRollHash = (rollnumber) => {
   const secret = process.env.QR_SECRET_KEY;
-  return crypto.createHmac('sha256', secret).update(rollnumber).digest('hex');
+  return crypto.createHmac("sha256", secret).update(rollnumber).digest("hex");
 };
 
 /**
@@ -41,12 +39,12 @@ const generateRollHash = (rollnumber) => {
  */
 const generateQRDataURL = async (rollnumber) => {
   const rollHash = generateRollHash(rollnumber);
-  const qrData = `RollHash:${rollHash}`;
+  const qrData = rollHash;
   try {
     const qrCodeDataURL = await QRCode.toDataURL(qrData);
     return { qrCodeDataURL, rollHash };
   } catch (error) {
-    throw new Error('Failed to generate QR code.');
+    throw new Error("Failed to generate QR code.");
   }
 };
 

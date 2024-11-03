@@ -41,7 +41,7 @@ const generateRollHash = (rollnumber) => {
  */
 const generateQRDataURL = async (rollnumber) => {
   const rollHash = generateRollHash(rollnumber);
-  const qrData = `RollHash:${rollHash}`;
+  const qrData = rollHash;
   try {
     const qrCodeDataURL = await QRCode.toDataURL(qrData);
     return { qrCodeDataURL, rollHash };

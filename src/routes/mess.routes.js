@@ -9,6 +9,7 @@ import { GetOverallMessData } from "../controllers/mess/data/overall_data.contro
 import { getMessDataByDate } from "../controllers/mess/data/data_by_date.controller.js";
 import { getDataByRollNumber } from "../controllers/mess/data/data_by_rollNumber.controller.js";
 import { getStudentPreviousData } from "../controllers/mess/data/data_student_previous.controller.js";
+import { getStudentDataByDate } from "../controllers/mess/data/data_student_by_date.controller.js";
 
 const router = Router();
 
@@ -27,5 +28,7 @@ router.route("/mess-data-byDate/:date").get(getMessDataByDate);
 router.route("/mess-data-byrollnumber/:rollNumber").get(getDataByRollNumber);
 
 router.route("/mess-data-previous").get(getStudentPreviousData);
+
+router.route("/mess-data-student-bydate/:date").get(getStudentDataByDate);
 
 export default router;

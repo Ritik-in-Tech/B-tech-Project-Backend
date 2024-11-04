@@ -8,6 +8,7 @@ import { entryMessQR } from "../controllers/mess/entry_mess_qr.controller.js";
 import { GetOverallMessData } from "../controllers/mess/data/overall_data.controller.js";
 import { getMessDataByDate } from "../controllers/mess/data/data_by_date.controller.js";
 import { getDataByRollNumber } from "../controllers/mess/data/data_by_rollNumber.controller.js";
+import { getStudentPreviousData } from "../controllers/mess/data/data_student_previous.controller.js";
 
 const router = Router();
 
@@ -24,5 +25,7 @@ router.route("/entry-mess-qr").post(entryMessQR);
 router.route("/mess-data-byDate/:date").get(getMessDataByDate);
 
 router.route("/mess-data-byrollnumber/:rollNumber").get(getDataByRollNumber);
+
+router.route("/mess-data-previous").get(getStudentPreviousData);
 
 export default router;

@@ -64,6 +64,14 @@ export const getMessDataByDate = asyncHandler(async (req, res) => {
       messDetailMap.set(rollNumber, studentEntry);
     }
 
+    if (messDetailMap.size === 0) {
+      return res
+        .status(200)
+        .json(
+          new ApiResponse(200, {}, `No mess details found for date ${date}`)
+        );
+    }
+
     const responseData = Object.fromEntries(messDetailMap);
 
     return res

@@ -1,6 +1,7 @@
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { User } from "../../models/user.model.js";
+import mongoose from "mongoose";
 
 export const getAnsiKey = asyncHandler(async (req, res) => {
   try {
@@ -29,6 +30,12 @@ export const getAnsiKey = asyncHandler(async (req, res) => {
       return res
         .status(400)
         .json(new ApiResponse(400, {}, "UserID is not provided in the params"));
+    }
+
+    if (!mongoose.isValidObjectId(userId)) {
+      return res
+        .status(400)
+        .json(new ApiResponse(400, {}, "Invalid UserID format"));
     }
 
     const user = await User.findById(userId);

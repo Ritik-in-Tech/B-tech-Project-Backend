@@ -69,7 +69,7 @@ export const getDataByRollNumber = asyncHandler(async (req, res) => {
     if (messDetailMap.size === 0) {
       return res
         .status(200)
-        .json(new ApiResponse(200, {}, "This user have not got to mess yet!"));
+        .json(new ApiResponse(200, {}, "This user have not gone to mess yet!"));
     }
 
     const responseData = Object.fromEntries(messDetailMap);

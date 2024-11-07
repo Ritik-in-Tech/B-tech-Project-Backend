@@ -175,14 +175,12 @@ export const registerUser = asyncHandler(async (req, res) => {
     );
 
     if (role === "students") {
-      // Generate and send QR code for students
       const { qrCodeDataURL, rollHash } = await generateQRDataURL(rollnumber);
 
       user.rollHash = rollHash;
       await user.save({ session });
       const qrCodeURL = await uploadQRToS3(qrCodeDataURL, rollnumber);
 
-      // Prepare and send email
       const mailOptions = {
         from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`,
         to: email,

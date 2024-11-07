@@ -16,6 +16,7 @@ import {
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
 import { isTimeInRange } from "../../helpers/time/entry_time_match.js";
 import { addOrUpdateEntry } from "../../helpers/schema/mess_entry.js";
+import { decrypt } from "../../helpers/encryption/decrypt_key.js";
 
 export const entryMessQR = asyncHandler(async (req, res) => {
   try {
@@ -67,10 +68,18 @@ export const entryMessQR = asyncHandler(async (req, res) => {
         .json(new ApiResponse(400, {}, "Invalid mess name."));
     }
 
-    const user = await User.findOne({ rollHash: rollHash }).session(session);
+    const decryptRollHash = decrypt(rollHash);
+
+    const user = await User.findOne({ rollHash: decryptRollHash }).session(
+      session
+    );
     if (!user) {
       await session.abortTransaction();
-      return res.status(404).json(new ApiResponse(404, {}, "User not found."));
+      return res
+        .status(404)
+        .json(
+          new ApiResponse(404, {}, "User not found or hash does not match")
+        );
     }
 
     if (user.role !== "students") {

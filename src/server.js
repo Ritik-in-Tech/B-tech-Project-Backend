@@ -7,6 +7,7 @@ import session from "express-session";
 import http from "http";
 import morgan from "morgan";
 import { Server } from "socket.io";
+import swaggerUi from "swagger-ui-express";
 
 dotenv.config();
 const app = express();
@@ -35,9 +36,11 @@ const HTTP_PORT = process.env.HTTP_PORT || 3000;
 import { connectDB } from "./db/index.js";
 import messRoutes from "./routes/mess.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import { swaggerDocs } from "./swagger/swagger.js";
 
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/mess", messRoutes);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.get("*", (req, res) => {
   res.json({ msg: "Welcome to BTP Restful API'S" });

@@ -7,6 +7,7 @@ import { addAnsiKey } from "../controllers/users/addansikey_controller.js";
 import { verifyJwt } from "../middlewares/auth_middleware.js";
 import { getStudentByRollNumber } from "../controllers/users/getstudentbyroll_controller.js";
 import { getRole } from "../controllers/users/getRole_controller.js";
+import { generateQr } from "../controllers/users/generateQr_controller.js";
 
 const router = Router();
 
@@ -28,4 +29,5 @@ router.route("/:rollNumber").get(getUser);
 
 router.route("/get-student/:rollNumber").get(getStudentByRollNumber);
 
+router.route("/generate-qr").post(generateQr);
 export default router;

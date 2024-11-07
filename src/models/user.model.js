@@ -37,6 +37,9 @@ const userSchema = new Schema({
     type: Date,
     default: getCurrentIndianTime(),
   },
+  qrLastGenerated: {
+    type: Date,
+  },
 });
 
 userSchema.pre("save", async function (next) {

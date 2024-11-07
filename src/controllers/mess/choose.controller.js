@@ -2,6 +2,7 @@ import { validMessNames } from "../../constant.js";
 import { ApiResponse } from "../../helpers/response/apiresponse.js";
 import { asyncHandler } from "../../helpers/response/asynchandler.js";
 import { getStatusMessage } from "../../helpers/response/statuscode.js";
+import { convertToIST } from "../../helpers/time/time.helper.js";
 import { Mess } from "../../models/mess.model.js";
 import { User } from "../../models/user.model.js";
 import mongoose from "mongoose";
@@ -77,21 +78,27 @@ export const chooseMess = asyncHandler(async (req, res) => {
     const start = new Date(startDate);
     let end = new Date(endDate);
     const today = new Date();
+    const istToday = convertToIST(today);
 
     end.setUTCHours(23, 59, 59, 999);
 
-    if (start <= today || end <= today) {
-      return res
-        .status(400)
-        .json(
-          new ApiResponse(
-            400,
-            {},
-            getStatusMessage(400) +
-              ": Start date and end date must be after the current date."
-          )
-        );
-    }
+    // console.log(start);
+    // console.log(end);
+    // console.log(istToday);
+    // console.log(start <= istToday);
+
+    // if (start > istToday) {
+    //   return res
+    //     .status(400)
+    //     .json(
+    //       new ApiResponse(
+    //         400,
+    //         {},
+    //         getStatusMessage(400) +
+    //           ": Start date and end date must be after the current date."
+    //       )
+    //     );
+    // }
     if (start > end) {
       return res
         .status(400)

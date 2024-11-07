@@ -41,7 +41,13 @@ const generateQRDataURL = async (rollnumber) => {
   const rollHash = generateRollHash(rollnumber);
   const qrData = rollHash;
   try {
-    const qrCodeDataURL = await QRCode.toDataURL(qrData);
+    const qrCodeDataURL = await QRCode.toDataURL(qrData, {
+      width: 300,
+      color: {
+        dark: "#FF0000",
+        light: "#FFFFFF",
+      },
+    });
     return { qrCodeDataURL, rollHash };
   } catch (error) {
     throw new Error("Failed to generate QR code.");

@@ -30,7 +30,7 @@ export const messTime = {
     end: "14:45",
   },
   Snacks: {
-    start: "17:00",
+    start: "15:30",
     end: "18:30",
   },
   Dinner: {

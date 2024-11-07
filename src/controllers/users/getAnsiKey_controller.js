@@ -43,6 +43,19 @@ export const getAnsiKey = asyncHandler(async (req, res) => {
       return res.status(404).json(new ApiResponse(404, {}, "User not found"));
     }
 
+    const isProfileComplete = user.isProfileComplete;
+    if (!isProfileComplete) {
+      return res
+        .status(400)
+        .json(
+          new ApiResponse(
+            400,
+            {},
+            "User have not done fingerprint registration yet! Please contact admin"
+          )
+        );
+    }
+
     const fingerprintKey = user.fingerprintKey;
     if (!fingerprintKey) {
       return res

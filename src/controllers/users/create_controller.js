@@ -188,12 +188,14 @@ export const registerUser = asyncHandler(async (req, res) => {
         to: email,
         subject: "Welcome! Here is your QR Code",
         html: `
-          <p>Thank you for registering.</p>
-          <p>Your Roll Number: ${rollnumber}</p>
-          <p>Here is your secure QR Code:</p>
-          <img src="${qrCodeURL}" alt="QR Code" />
-          <p>Please keep this QR code safe. It contains your unique identifier.</p>
-        `,
+        <p>Thank you for registering.</p>
+        <p>Your Roll Number: ${rollnumber}</p>
+        <p>Here is your secure QR Code:</p>
+        <a href="${qrCodeURL}" target="_blank">
+          <img src="${qrCodeURL}" alt="QR Code" style="width: 300px; height: auto;" />
+        </a>
+        <p>Please keep this QR code safe. It contains your unique identifier.</p>
+  `,
       };
 
       await sendEmail(mailOptions);

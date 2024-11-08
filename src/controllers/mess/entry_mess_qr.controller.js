@@ -69,6 +69,7 @@ export const entryMessQR = asyncHandler(async (req, res) => {
     }
 
     const decryptRollHash = decrypt(rollHash);
+    // console.log(decryptRollHash);
 
     const user = await User.findOne({ rollHash: decryptRollHash }).session(
       session

@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import { uploadQRToS3 } from "../../helpers/qr/upload_qr_aws.js";
 import { sendEmail } from "../../helpers/email/send_email.js";
 import { convertToIST } from "../../helpers/time/time.helper.js";
+import generateQRCodePDF from "../../helpers/qr/generate_qrcode_pdf.js";
 
 export const generateQr = asyncHandler(async (req, res) => {
   const session = await mongoose.startSession();
@@ -81,20 +82,25 @@ export const generateQr = asyncHandler(async (req, res) => {
 
     const qrCodeURL = await uploadQRToS3(qrCodeDataURL, rollNumber);
 
+    const pdfBuffer = await generateQRCodePDF(qrCodeDataURL, rollnumber);
+
     const mailOptions = {
-      from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`,
-      to: email,
-      subject: "Welcome! Here is your QR Code",
-      html: `
-        <p>Thank you for registering.</p>
-        <p>Your Roll Number: ${rollNumber}</p>
-        <p>Here is your secure QR Code:</p>
-        <a href="${qrCodeURL}" target="_blank">
-          <img src="${qrCodeURL}" alt="QR Code" style="width: 300px; height: auto;" />
-        </a>
-        <p>Please keep this QR code safe. It contains your unique identifier.</p>
-      `,
-    };
+        from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`,
+        to: email,
+        subject: "Welcome! Here is your QR Code PDF",
+        html: `
+          <p>Thank you for registering.</p>
+          <p>Your Roll Number: ${rollnumber}</p>
+          <p>Your unique QR Code is attached in the PDF file.</p>
+          <p>Please keep this PDF safe. It contains your unique identifier.</p>
+        `,
+        attachments: [
+          {
+            filename: `${rollnumber}-QRCode.pdf`,
+            content: pdfBuffer,
+          },
+        ],
+      };
 
     await sendEmail(mailOptions);
 

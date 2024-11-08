@@ -51,12 +51,9 @@ export const generateQr = asyncHandler(async (req, res) => {
 
     let qrCodeDataURL;
     let rollHash;
-    let now;
+    let now = convertToIST(new Date());
 
-    // console.log(user.qrLastGenerated);
-    if (user.qrLastGenerated !== undefined) {
-      now = new Date();
-      now = convertToIST(now);
+    if (user.qrLastGenerated) {
       const diffDays = Math.floor(
         (now.getTime() - user.qrLastGenerated.getTime()) / (1000 * 60 * 60 * 24)
       );
@@ -73,13 +70,11 @@ export const generateQr = asyncHandler(async (req, res) => {
               "You can generate a new QR code only once a week."
             )
           );
-      } else {
-        ({ qrCodeDataURL, rollHash } = await generateQRDataURL(rollNumber));
       }
-    } else {
-      ({ qrCodeDataURL, rollHash } = await generateQRDataURL(rollNumber));
     }
 
+    ({ qrCodeDataURL, rollHash } = await generateQRDataURL(rollNumber));
+    // console.log(now);
     user.qrLastGenerated = now;
     user.rollHash = rollHash;
     await user.save({ session });

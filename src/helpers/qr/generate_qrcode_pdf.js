@@ -29,7 +29,7 @@ async function generateQRCodePDF(qrCodeDataURL, rollnumber) {
     doc.fontSize(18).fillColor("#333333").text("Student QR Code for Mess Attendance", {
       align: "center",
     });
-    doc.moveDown(2);
+    doc.moveDown(1);
 
     // Add a line separator
     doc.moveTo(50, doc.y).lineTo(550, doc.y).strokeColor("#0073e6").stroke();
@@ -47,28 +47,28 @@ async function generateQRCodePDF(qrCodeDataURL, rollnumber) {
     });
     doc.moveDown(2);
 
-    // Add a background for the QR code section
-    doc.rect(150, doc.y, 250, 250).fill("#f0f8ff").stroke("#0073e6");
-    doc.moveDown();
-
-    // Insert QR code image
-    doc.image(qrCodeImagePath, 180, doc.y - 240, {
-      fit: [200, 200],
+    // Draw a background box for the QR code section
+    const qrCodeBoxX = 125; 
+    const qrCodeBoxY = doc.y;
+    doc.rect(qrCodeBoxX, qrCodeBoxY, 300, 300).fill("#f0f8ff").stroke("#0073e6");
+    
+    // Insert QR code image centered within the background box
+    doc.image(qrCodeImagePath, qrCodeBoxX, qrCodeBoxY, {
+      width: 300,
+      height: 300,
       align: "center",
       valign: "center",
     });
 
     // Move cursor below the QR code
-    doc.moveDown(14);
+    doc.moveDown(23);
 
     // Footer Section
     doc.fontSize(10).fillColor("#666666").text("Please keep this document secure as it contains your unique identifier for mess attendance.", {
       align: "center",
     });
     doc.moveDown();
-    doc.fontSize(10).fillColor("#666666").text("For support, contact: support@iitjmessportal.edu", {
-      align: "center",
-    });
+
 
     // Finalize PDF file
     doc.end();

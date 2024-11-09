@@ -82,25 +82,25 @@ export const generateQr = asyncHandler(async (req, res) => {
 
     const qrCodeURL = await uploadQRToS3(qrCodeDataURL, rollNumber);
 
-    const pdfBuffer = await generateQRCodePDF(qrCodeDataURL, rollnumber);
+    const pdfBuffer = await generateQRCodePDF(qrCodeDataURL, rollNumber);
 
     const mailOptions = {
-        from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`,
-        to: email,
-        subject: "Welcome! Here is your QR Code PDF",
-        html: `
+      from: `"IITJ MESS PORTAL" <${process.env.EMAIL_FROM}>`,
+      to: email,
+      subject: "Welcome! Here is your QR Code PDF",
+      html: `
           <p>Thank you for registering.</p>
-          <p>Your Roll Number: ${rollnumber}</p>
+          <p>Your Roll Number: ${rollNumber}</p>
           <p>Your unique QR Code is attached in the PDF file.</p>
           <p>Please keep this PDF safe. It contains your unique identifier.</p>
         `,
-        attachments: [
-          {
-            filename: `${rollnumber}-QRCode.pdf`,
-            content: pdfBuffer,
-          },
-        ],
-      };
+      attachments: [
+        {
+          filename: `${rollNumber}-QRCode.pdf`,
+          content: pdfBuffer,
+        },
+      ],
+    };
 
     await sendEmail(mailOptions);
 
@@ -109,6 +109,7 @@ export const generateQr = asyncHandler(async (req, res) => {
       .status(200)
       .json(new ApiResponse(200, {}, "New QR generated successfully."));
   } catch (error) {
+    console.log(error);
     await session.abortTransaction();
     return res
       .status(500)

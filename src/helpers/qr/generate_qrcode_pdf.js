@@ -26,9 +26,12 @@ async function generateQRCodePDF(qrCodeDataURL, rollnumber) {
       align: "center",
     });
     doc.moveDown();
-    doc.fontSize(18).fillColor("#333333").text("Student QR Code for Mess Attendance", {
-      align: "center",
-    });
+    doc
+      .fontSize(18)
+      .fillColor("#333333")
+      .text("Student QR Code for Mess Attendance", {
+        align: "center",
+      });
     doc.moveDown(1);
 
     // Add a line separator
@@ -42,16 +45,25 @@ async function generateQRCodePDF(qrCodeDataURL, rollnumber) {
     doc.moveDown(1);
 
     // Instruction Section
-    doc.fontSize(12).fillColor("#666666").text("Please scan the QR code below at the mess entrance to mark your attendance.", {
-      align: "left",
-    });
+    doc
+      .fontSize(12)
+      .fillColor("#666666")
+      .text(
+        "Please scan the QR code below at the mess entrance to mark your attendance.",
+        {
+          align: "left",
+        }
+      );
     doc.moveDown(2);
 
     // Draw a background box for the QR code section
-    const qrCodeBoxX = 125; 
+    const qrCodeBoxX = 125;
     const qrCodeBoxY = doc.y;
-    doc.rect(qrCodeBoxX, qrCodeBoxY, 300, 300).fill("#f0f8ff").stroke("#0073e6");
-    
+    doc
+      .rect(qrCodeBoxX, qrCodeBoxY, 300, 300)
+      .fill("#f0f8ff")
+      .stroke("#0073e6");
+
     // Insert QR code image centered within the background box
     doc.image(qrCodeImagePath, qrCodeBoxX, qrCodeBoxY, {
       width: 300,
@@ -64,11 +76,16 @@ async function generateQRCodePDF(qrCodeDataURL, rollnumber) {
     doc.moveDown(23);
 
     // Footer Section
-    doc.fontSize(10).fillColor("#666666").text("Please keep this document secure as it contains your unique identifier for mess attendance.", {
-      align: "center",
-    });
+    doc
+      .fontSize(10)
+      .fillColor("#666666")
+      .text(
+        "Please keep this document secure as it contains your unique identifier for mess attendance.",
+        {
+          align: "center",
+        }
+      );
     doc.moveDown();
-
 
     // Finalize PDF file
     doc.end();

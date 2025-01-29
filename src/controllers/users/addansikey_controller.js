@@ -21,12 +21,12 @@ export const addAnsiKey = asyncHandler(async (req, res) => {
         );
     }
 
-    const { userId } = req.params;
-    if (!userId) {
-      return res
-        .status(400)
-        .json(new ApiResponse(400, {}, "Id is not provided in the params"));
-    }
+    // const { userId } = req.params;
+    // if (!userId) {
+    //   return res
+    //     .status(400)
+    //     .json(new ApiResponse(400, {}, "Id is not provided in the params"));
+    // }
 
     const { ansiKey, ansiImageUrl } = req.body;
     if (!ansiKey || !ansiImageUrl) {
